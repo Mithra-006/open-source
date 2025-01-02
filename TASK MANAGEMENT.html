@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #e9ecef;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        label {
+            font-size: 1em;
+            color: #555;
+            text-align: left;
+        }
+
+        input, select, button[type="button"] {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #page2, #page3 {
+            display: none;
+        }
+
+        #tasksList {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .task-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-buttons button {
+            margin-left: 5px;
+        }
+
+        .corner-name {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="page1">
+        <div class="corner-name">Mithra</div>
+        <h1>Task Management</h1>
+        <button onclick="goToPage2()">Proceed</button>
+    </div>
+
+    <div class="container" id="page2">
+        <div class="corner-name">Mithra</div>
+        <h1>Task Details</h1>
+        <form id="taskForm">
+            <label for="description">Task Description:</label>
+            <input type="text" id="description" name="description" required>
+
+            <label for="dueDate">Due Date:</label>
+            <input type="date" id="dueDate" name="dueDate" required>
+
+            <label for="dueTime">Due Time:</label>
+            <input type="time" id="dueTime" name="dueTime" required>
+
+            <label for="type">Task Type:</label>
+            <select id="type" name="type" required>
+                <option value="individual">Individual</option>
+                <option value="group">Group</option>
+            </select>
+
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <button type="button" onclick="addTask()">Add Task</button>
+        </form>
+        <button onclick="goToPage3()">View Tasks</button>
+    </div>
+
+    <div class="container" id="page3">
+        <h1>Task List</h1>
+        <button onclick="filterTasks('completed')">Completed Tasks</button>
+        <button onclick="filterTasks('incomplete')">Incomplete Tasks</button>
+        <ul id="tasksList"></ul>
+        <button onclick="goToPage2()">Back to Add Tasks</button>
+    </div>
+
+    <script>
+        const tasks = [];
+
+        // Function to navigate to Page 2
+        function goToPage2() {
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            document.getElementById('page3').style.display = 'none';
+        }
+
+        // Function to navigate to Page 3
+        function goToPage3() {
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'none';
+            document.getElementById('page3').style.display = 'block';
+            displayTasks();
+        }
+
+        // Function to add a task
+        function addTask() {
+            const description = document.getElementById("description").value;
+            const dueDate = document.getElementById("dueDate").value;
+            const dueTime = document.getElementById("dueTime").value;
+            const type = document.getElementById("type").value;
+            const name = document.getElementById("name").value;
+
+            const newTask = { 
+                description, 
+                dueDate, 
+                dueTime, 
+                type, 
+                name, 
+                status: 'incomplete' 
+            };
+
+            tasks.push(newTask);
+
+            document.getElementById("taskForm").reset();
+            alert("Task added successfully!");
+        }
+
+        // Function to display tasks
+        function displayTasks(filter = 'all') {
+            const tasksList = document.getElementById("tasksList");
+            tasksList.innerHTML = "";
+
+            const filteredTasks = filter === 'all' 
+                ? tasks 
+                : tasks.filter(task => task.status === filter);
+
+            filteredTasks.forEach((task, index) => {
+                const taskItem = document.createElement("li");
+                taskItem.className = "task-item";
+
+                const taskDetails = document.createElement("span");
+                taskDetails.textContent = `${task.description} - Due: ${task.dueDate} ${task.dueTime} (${task.type}, ${task.name})`;
+
+                const taskButtons = document.createElement("div");
+                taskButtons.className = "task-buttons";
+
+                const completeButton = document.createElement("button");
+                completeButton.textContent = task.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete';
+                completeButton.onclick = () => toggleTaskStatus(index);
+
+                const editButton = document.createElement("button");
+                editButton.textContent = "Edit";
+                editButton.onclick = () => editTask(index);
+
+                taskButtons.appendChild(completeButton);
+                taskButtons.appendChild(editButton);
+
+                taskItem.appendChild(taskDetails);
+                taskItem.appendChild(taskButtons);
+
+                tasksList.appendChild(taskItem);
+            });
+        }
+
+        // Function to toggle task status
+        function toggleTaskStatus(index) {
+            tasks[index].status = tasks[index].status === 'completed' ? 'incomplete' : 'completed';
+            displayTasks();
+        }
+
+        // Function to edit a task
+        function editTask(index) {
+            const task = tasks[index];
+            document.getElementById("description").value = task.description;
+            document.getElementById("dueDate").value = task.dueDate;
+            document.getElementById("dueTime").value = task.dueTime;
+            document.getElementById("type").value = task.type;
+            document.getElementById("name").value = task.name;
+
+            tasks.splice(index, 1); // Remove the task temporarily
+            goToPage2();
+        }
+
+        // Function to filter tasks
+        function filterTasks(status) {
+            displayTasks(status);
+        }
+    </script>
+</body>
+</html>
